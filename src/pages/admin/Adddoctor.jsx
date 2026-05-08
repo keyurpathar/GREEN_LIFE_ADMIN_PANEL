@@ -41,7 +41,7 @@ const Adddoctor = () => {
       formdata.append('password', password)
       formdata.append('experience', exp)
       formdata.append('speciality', spe)
-      formdata.append('fee', Number(fee))
+      formdata.append('fee', fee)
       formdata.append('about', about)
       formdata.append('degree', degree)
       formdata.append('address', JSON.stringify({ line1: address1, line2: address2 }))
