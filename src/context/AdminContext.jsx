@@ -1,17 +1,58 @@
 import { createContext, useState } from "react";
+import axios from 'axios'
+import { toast } from "react-toastify";
 
 export const AdminContext = createContext()
 
 const AdminContextProvider = (props) => {
 
-    const [admintoken , setadmintoken] = useState(localStorage.getItem('admintoken') ? localStorage.getItem('admintoken'):'')
+    const [admintoken, setadmintoken] = useState(localStorage.getItem('admintoken') ? localStorage.getItem('admintoken') : '')
 
-    const backendurl = import.meta.env.VITE_BACKEND_URL
+    const [doctors, setdoctors] = useState([])
 
-    
- 
+    const backendurl = import.meta.env.VITE_BACKEND_URL;
+
+    const getAllDoctor = async () => {
+
+        try {
+
+            const { data } = await axios.get(backendurl + '/admin/allDoctors', { headers: { admintoken } })
+
+            if (data.success) {
+                setdoctors(data.doctors)
+                console.log(data.doctors)
+            } else {
+                toast.error(data.message)
+            }
+
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
+
+    const changeAvailability = async (docId) => {
+
+        try {
+
+            const { data } = await axios.post(backendurl + '/admin/changeavailability', { docId }, { headers: { admintoken } })
+
+            if (data.success) {
+                toast.success('availibility changed')
+                getAllDoctor()
+            }
+            else {
+                toast.error(data.message)
+            }
+
+        } catch (error) {
+            toast.error(error.message)
+        }
+
+    }
+
     const value = {
-            admintoken,setadmintoken,backendurl
+        admintoken, setadmintoken, backendurl, doctors, getAllDoctor, changeAvailability,
+
     }
 
     return (
