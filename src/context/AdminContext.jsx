@@ -50,8 +50,26 @@ const AdminContextProvider = (props) => {
 
     }
 
+    const deleteDoctor = async (docId) => {
+        try {
+            const { data } = await axios.delete(backendurl + '/admin/deleteDoctor/' + docId, { headers: { admintoken } })
+
+            if (data.success) {
+                toast.success(data.message)
+                getAllDoctor()
+            }
+            else {
+                toast.error(data.message)
+            }
+
+        } catch (error) {
+            toast.error(error.response?.data?.message || error.message)
+        }
+    }
+
     const value = {
-        admintoken, setadmintoken, backendurl, doctors, getAllDoctor, changeAvailability,
+        admintoken, setadmintoken, backendurl, doctors, getAllDoctor, changeAvailability, deleteDoctor
+
 
     }
 

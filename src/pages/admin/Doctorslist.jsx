@@ -1,9 +1,11 @@
 import React, { useContext, useEffect } from 'react'
 import { AdminContext } from '../../context/AdminContext'
+import { useNavigate } from 'react-router-dom'
 
 const Doctorslist = () => {
 
-  const { doctors, getAllDoctor, admintoken, changeAvailability } = useContext(AdminContext)
+  const { doctors, getAllDoctor, admintoken, changeAvailability, deleteDoctor } = useContext(AdminContext)
+  const navigate = useNavigate()
 
   console.log(admintoken)
 
@@ -35,6 +37,22 @@ const Doctorslist = () => {
                 <div className='mt-2 flex items-center gap-1 text-sm'>
                   <input onChange={() => changeAvailability(item._id)} type="checkbox" checked={item.available} />
                   <p>Available</p>
+                </div>
+                <div className='mt-3 flex justify-between'>
+                  <button 
+                    onClick={() => navigate(`/edit-doctor/${item._id}`)}
+                    className='text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 transition'>
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if(window.confirm('Are you sure you want to delete this doctor?')) {
+                        deleteDoctor(item._id)
+                      }
+                    }}
+                    className='text-xs bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 transition'>
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>

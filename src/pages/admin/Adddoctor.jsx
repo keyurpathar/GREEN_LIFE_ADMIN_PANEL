@@ -1,8 +1,9 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import img from '../../assets/assets_admin/upload_area.svg'
 import { AdminContext } from '../../context/AdminContext'
 import { toast } from 'react-toastify'
 import axios from 'axios'
+import { useParams, useNavigate } from 'react-router-dom'
 
 
 const Adddoctor = () => {
@@ -19,9 +20,41 @@ const Adddoctor = () => {
   const [address1, setaddress1] = useState('')
   const [address2, setaddress2] = useState('')
 
-  const { backendurl, admintoken } = useContext(AdminContext)
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { backendurl, admintoken, doctors, getAllDoctor } = useContext(AdminContext)
+  const [existingImg, setExistingImg] = useState('')
 
-
+  useEffect(() => {
+    if (id && doctors.length > 0) {
+      const doc = doctors.find((d) => d._id === id)
+      if (doc) {
+        setname(doc.name)
+        setemail(doc.email)
+        setexp(doc.experience)
+        setfee(doc.fee)
+        setabout(doc.about)
+        setspe(doc.speciality)
+        setdegree(doc.degree)
+        setaddress1(doc.address?.line1 || '')
+        setaddress2(doc.address?.line2 || '')
+        setExistingImg(doc.image)
+      }
+    } else if (!id) {
+        setname('')
+        setemail('')
+        setpassword('')
+        setexp('1')
+        setfee('')
+        setabout('')
+        setspe('general_physician')
+        setdegree('')
+        setaddress1('')
+        setaddress2('')
+        setdocimg(false)
+        setExistingImg('')
+    }
+  }, [id, doctors])
   const onsubmithandler = async (e) => {
 
     e.preventDefault()
@@ -29,16 +62,16 @@ const Adddoctor = () => {
 
     try {
 
-      if (!docimg) {
+      if (!docimg && !id) {
         return toast.error('image not selected')
       }
 
       const formdata = new FormData()
 
-      formdata.append('image', docimg)
+      if (docimg) formdata.append('image', docimg)
       formdata.append('name', name)
       formdata.append('email', email)
-      formdata.append('password', password)
+      if (password) formdata.append('password', password)
       formdata.append('experience', exp)
       formdata.append('speciality', spe)
       formdata.append('fee', fee)
@@ -53,23 +86,29 @@ const Adddoctor = () => {
       console.log(admintoken)
       console.log(backendurl)
 
-      const { data } = await axios.post(backendurl + '/admin/addDoctor', formdata, {
+      const url = id ? backendurl + '/admin/updateDoctor/' + id : backendurl + '/admin/addDoctor'
+      const { data } = await axios.post(url, formdata, {
         headers: {
           admintoken
         }
       })
 
       if (data.success) {
-        toast.success('doctor added ')
-        setdocimg(false)
-        setname('')
-        setpassword('')
-        setabout('')
-        setemail('')
-        setaddress1('')
-        setaddress2('')
-        setfee('')
-        setdegree('')
+        toast.success(data.message || (id ? 'doctor updated' : 'doctor added'))
+        if (id) {
+          getAllDoctor()
+          navigate('/doctorlist')
+        } else {
+          setdocimg(false)
+          setname('')
+          setpassword('')
+          setabout('')
+          setemail('')
+          setaddress1('')
+          setaddress2('')
+          setfee('')
+          setdegree('')
+        }
       }
       else {
         toast.error(data.message)
@@ -88,14 +127,14 @@ const Adddoctor = () => {
 
     <div className="m-5 w-full">
 
-      <h2 className="text-lg font-medium text-gray-700 mb-4">Add New Doctor</h2>
+      <h2 className="text-lg font-medium text-gray-700 mb-4">{id ? 'Edit Doctor' : 'Add New Doctor'}</h2>
 
       <form onSubmit={onsubmithandler} className="bg-white border rounded-xl p-6 w-full max-h-[85vh] overflow-y-auto">
 
         {/* Image Upload */}
         <label htmlFor="docimage" className="flex items-center gap-4 mb-6 cursor-pointer w-fit">
           <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border flex items-center justify-center">
-            <img src={docimg ? URL.createObjectURL(docimg) : img} alt="Upload" className="w-32 h-32  opacity-50" />
+            <img src={docimg ? URL.createObjectURL(docimg) : (existingImg ? existingImg : img)} alt="Upload" className={docimg || existingImg ? "w-full h-full object-cover" : "w-32 h-32 opacity-50"} />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-700">Upload Doctor Picture</p>
@@ -120,7 +159,7 @@ const Adddoctor = () => {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm text-gray-600">Password</label>
+            <label className="text-sm text-gray-600">{id ? 'Password (leave blank to keep current)' : 'Password'}</label>
             <input type="password" placeholder="Set a secure password" onChange={(e) => setpassword(e.target.value)} value={password}
               className="border rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400" />
           </div>
@@ -213,7 +252,7 @@ const Adddoctor = () => {
           <button
             type="submit"
             className="px-6 py-2 text-sm bg-[#5f6fff] text-white rounded-lg hover:opacity-90 transition">
-            Add Doctor
+            {id ? 'Update Doctor' : 'Add Doctor'}
           </button>
         </div>
 
